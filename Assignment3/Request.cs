@@ -31,10 +31,9 @@ public class Request
         }
         
         //SPECIFIC PATH CHECK
-        if (this.Path.Contains("testing")) return true; //allways accept testing-paths
+        if (this.Path.Contains("testing")) return true; //always accept testing-paths
         if (!this.Path.Contains("/api/categories"))
         {
-            Console.WriteLine("Added bad request due to contains constraint");
             RequestErrors.Add("4 Bad Request");
             return false;
         }
@@ -47,19 +46,16 @@ public class Request
             var id_string = pathSplit[3];
             if (!int.TryParse(id_string, out int id_number))
             {
-                Console.WriteLine("Added bad request due to id");
                 RequestErrors.Add("4 Bad Request");
                 return false;
             }
             else if (method == "create") //specific id is not allowed on create-method
             {
-                Console.WriteLine("Added bad request due to create");
                 RequestErrors.Add("4 Bad Request");
                 return false;
             }
         } else if (method is "update" or "delete") //specific id is required on update or delete
         {
-            Console.WriteLine("Added bad request due to update / delete");
             RequestErrors.Add("4 Bad Request"); 
             return false;
         }
@@ -131,8 +127,6 @@ public class Request
 
     }
 
-
-
     public Response checkForBadRequest()
     {
         Response outputResponse = new Response();
@@ -170,18 +164,5 @@ public class Request
 
         return outputResponse;
     }
-
-
-    //public Response writeBadRequest()
-    //{
-    //    Response outputResponse = new Response();
-    //    outputResponse.Status = "4 Bad Request:";
-    //    if (!this.checkMethod()) outputResponse.Status += " illegal method";
-    //    if (!this.checkPath()) outputResponse.Status += " missing resource";
-    //    if (!this.checkDate()) outputResponse.Status += " missing date";
-
-    //    return outputResponse;
-    //}
-
-
+    
 }
