@@ -40,26 +40,13 @@ while (true)
 
             var requestFromJson = JsonSerializer.Deserialize<Request>(data);
             Console.WriteLine(requestFromJson.Method);
+            Console.WriteLine(requestFromJson.Date);
 
             //REQUEST HANDLING
-            if (requestFromJson.Method != null)
+            response = requestFromJson.checkForBadRequest();
+            if (!response.Status.Contains('4'))
             {
-                if (requestFromJson.checkMethod())
-                {
-                    //Do stuff
-                }
-                else
-                {
-                    response.Status = "4 Bad Request ";
-                    response.Status += "illegal method";
-                    if (!requestFromJson.checkPath()) response.Status += " missing resource";
-                }
-            }
-            else
-            {
-                response.Status = "4 Bad Request ";
-                response.Status += "missing method";
-                if (!requestFromJson.checkPath()) response.Status += " missing resource";
+                Console.WriteLine("All is good");
             }
 
             //CREATE AND SEND JSON RESPONSE 
@@ -73,6 +60,7 @@ while (true)
         }
         catch (Exception e)
         {
+            Console.WriteLine(e);
             Console.WriteLine("No request recieved"); //not needed
         }
 
