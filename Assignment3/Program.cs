@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 
-
 var server = new TcpListener(IPAddress.Parse("127.0.0.1"), 5000);
 server.Start();
 
@@ -40,11 +39,10 @@ while (true)
 
             var requestFromJson = JsonSerializer.Deserialize<Request>(data);
             Console.WriteLine(requestFromJson.Method);
-            Console.WriteLine(requestFromJson.Date);
 
             //REQUEST HANDLING
             response = requestFromJson.checkForBadRequest();
-            if (!response.Status.Contains('4'))
+            if (!response.Status.Contains('4')) //Making sure the request is valid
             {
                 Console.WriteLine("All is good");
             }

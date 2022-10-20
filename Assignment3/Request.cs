@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public class Request
 {
@@ -17,7 +18,7 @@ public class Request
     private List<string> RequestErrors = new List<string>(10);
 
     //METHOD TO CHECK PATH IS VALID
-    public Boolean checkPath()
+    private Boolean checkPath()
     {
         if (this.Path == null && this.Method != "echo")
         {
@@ -28,7 +29,7 @@ public class Request
     }
 
     //METHOD TO CHECK DATE IS VALID
-    public Boolean checkDate()
+    private Boolean checkDate()
     {
         if (this.Date == null)
         {
@@ -38,16 +39,13 @@ public class Request
         else if (!Int64.TryParse(this.Date, out long date))
         {
             RequestErrors.Add("illegal date");
-            return true;
-        }
-        else
-        {
             return false;
         }
+        return true;
     }
 
     //METHOD TO CHECK METHOD IS VALID
-    public Boolean checkMethod()
+    private Boolean checkMethod()
     {
         var method = this.Method;
         if (method == null)
@@ -67,12 +65,42 @@ public class Request
 
     }
 
+    private Boolean checkBody()
+    {
+        var body = this.Body;
+        var method = this.Method;
+
+        if (body == null)
+        {
+            RequestErrors.Add("missing body");
+            return false;
+        } 
+        else if (method is "create" or "read" or "update" or "delete" )
+        {
+            try
+            {
+                var bodyFromJson = JsonSerializer.Deserialize<Category>(body);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("could not convert body to json: {0}",body);
+                RequestErrors.Add("illegal body");
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+
+
     public Response checkForBadRequest()
     {
         Response outputResponse = new Response();
         this.checkMethod();
         this.checkPath();
         this.checkDate();
+        this.checkBody();
 
         outputResponse.Status = "";
 
