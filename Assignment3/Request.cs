@@ -104,13 +104,17 @@ public class Request
     {
         var body = this.Body;
         var method = this.Method;
+        
+        //BODY IS IRRELEVANT ON READ
+        if (method == "read") return true;
 
+        //BODY NOT NULL RESTRAINT
         if (body == null)
         {
             RequestErrors.Add("missing body");
             return false;
         } 
-        else if (method is "create" or "read" or "update" or "delete" )
+        else if (method is "create" or "update" or "delete" )
         {
             try
             {
@@ -164,5 +168,20 @@ public class Request
 
         return outputResponse;
     }
-    
+
+    public int getPathCid()
+    {
+        var method = this.Method;
+        var pathSplit = this.Path.Split("/");
+        if (pathSplit.Length > 3) //if the path contains an id after categories
+        {
+            var id_string = pathSplit[3];
+            if (int.TryParse(id_string, out int id_number))
+            {
+                return id_number;
+            }
+        }
+        return 0;
+    }
+
 }

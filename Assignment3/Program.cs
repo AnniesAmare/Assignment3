@@ -14,7 +14,6 @@ while (true)
 {
     // get client connection
     var newClient = server.AcceptTcpClient();
-
     // once connected, create new thread to handle communication
     Thread thread = new Thread(HandleClient);
     thread.Start(newClient);
@@ -25,7 +24,12 @@ while (true)
         TcpClient client = (TcpClient)obj;
         Console.WriteLine("Connected to new client");
 
-        String data = null;
+        //DATA MODEL
+        List<Category> category = new List<Category>();
+        category.Add(new Category(1, "Beverages"));
+        category.Add(new Category(2, "Condiments"));
+        category.Add(new Category(3, "Confections"));
+
         var stream = client.GetStream();
         var buffer = new byte[1024];
         var response = new Response();
@@ -34,9 +38,9 @@ while (true)
         {
             var readCount = stream.Read(buffer, 0, buffer.Length);
 
-            data = System.Text.Encoding.UTF8.GetString(buffer, 0, readCount);
-            Console.WriteLine("Received request: {0}", data);
-            var requestFromJson = JsonSerializer.Deserialize<Request>(data);
+            var requestData = System.Text.Encoding.UTF8.GetString(buffer, 0, readCount);
+            Console.WriteLine("Received request: {0}", requestData);
+            var requestFromJson = JsonSerializer.Deserialize<Request>(requestData);
             
             //REQUEST HANDLING
             response = requestFromJson.checkForBadRequest();
@@ -44,11 +48,43 @@ while (true)
             {
                 Console.WriteLine("Request approved");
                 var method = requestFromJson.Method;
+
+                // ECHO METHOD
                 if (method == "echo")
                 {
                     response.Status = "1 Ok";
                     response.Body = requestFromJson.Body;
                 }
+
+                // READ METHOD
+                if (method == "read")
+                {
+                    var requestedCid = requestFromJson.getPathCid();
+                    if (requestedCid == 0) //0 means that no specific Cid is requested
+                    {
+                        response.Status = "1 Ok";
+                        var categoriesToJson = JsonSerializer.Serialize(category);
+                        response.Body = categoriesToJson;
+                    }
+                    else
+                    {
+                        var requestedCategory = category.Find(category1 => category1.Id == requestedCid);
+                        if (requestedCategory != null)
+                        {
+                            response.Status = "1 Ok";
+                            var categoryToJson = JsonSerializer.Serialize<Category>(requestedCategory);
+                            response.Body = categoryToJson;
+                        }
+                        else
+                        {
+                            response.Status = "5 Not Found";
+                        }
+
+                    }
+
+                }
+
+
 
             }
 
