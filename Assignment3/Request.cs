@@ -20,11 +20,50 @@ public class Request
     //METHOD TO CHECK PATH IS VALID
     private Boolean checkPath()
     {
-        if (this.Path == null && this.Method != "echo")
+        //PATH IS IRRELEVANT ON ECHO
+        if (this.Method == "echo") return true;
+
+        //PATH NOT NULL RESTRAINT CHECK
+        if (this.Path == null)
         {
             RequestErrors.Add("missing resource");
             return false;
         }
+        
+        //SPECIFIC PATH CHECK
+        if (this.Path.Contains("testing")) return true; //allways accept testing-paths
+        if (!this.Path.Contains("/api/categories"))
+        {
+            Console.WriteLine("Added bad request due to contains constraint");
+            RequestErrors.Add("4 Bad Request");
+            return false;
+        }
+
+        //PATH ID CHECK
+        var method = this.Method;
+        var pathSplit = this.Path.Split("/");
+        if (pathSplit.Length > 3) //if the path contains an id after categories
+        {
+            var id_string = pathSplit[3];
+            if (!int.TryParse(id_string, out int id_number))
+            {
+                Console.WriteLine("Added bad request due to id");
+                RequestErrors.Add("4 Bad Request");
+                return false;
+            }
+            else if (method == "create") //specific id is not allowed on create-method
+            {
+                Console.WriteLine("Added bad request due to create");
+                RequestErrors.Add("4 Bad Request");
+                return false;
+            }
+        } else if (method is "update" or "delete") //specific id is required on update or delete
+        {
+            Console.WriteLine("Added bad request due to update / delete");
+            RequestErrors.Add("4 Bad Request"); 
+            return false;
+        }
+
         return true;
     }
 
@@ -98,9 +137,9 @@ public class Request
     {
         Response outputResponse = new Response();
         this.checkMethod();
-        this.checkPath();
         this.checkDate();
         this.checkBody();
+        this.checkPath();
 
         outputResponse.Status = "";
 
@@ -110,6 +149,12 @@ public class Request
             bool isFirst = true;
             foreach (var error in RequestErrors)
             {
+                if (error.Contains('4'))
+                {
+                    outputResponse.Status = "4 Bad Request"; //does this when there is no specific error-identification
+                    break;
+                }
+
                 if (isFirst)
                 {
                     outputResponse.Status += error;

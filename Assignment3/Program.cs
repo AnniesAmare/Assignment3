@@ -35,21 +35,24 @@ while (true)
             var readCount = stream.Read(buffer, 0, buffer.Length);
 
             data = System.Text.Encoding.UTF8.GetString(buffer, 0, readCount);
-            Console.WriteLine("Received: {0}", data);
-
+            Console.WriteLine("Received request: {0}", data);
             var requestFromJson = JsonSerializer.Deserialize<Request>(data);
-            Console.WriteLine(requestFromJson.Method);
-
+            
             //REQUEST HANDLING
             response = requestFromJson.checkForBadRequest();
             if (!response.Status.Contains('4')) //Making sure the request is valid
             {
-                Console.WriteLine("All is good");
+                Console.WriteLine("Request approved");
+                var method = requestFromJson.Method;
+                if (method == "echo")
+                {
+                    response.Status = "1 Ok";
+                    response.Body = requestFromJson.Body;
+                }
+
             }
 
-            //CREATE AND SEND JSON RESPONSE 
-            response.Body = " ";
-
+            //SEND JSON RESPONSE 
             var responseToJson = JsonSerializer.Serialize<Response>(response);
             Console.WriteLine("Created response: {0}", responseToJson);
 
