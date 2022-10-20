@@ -108,13 +108,17 @@ public class Request
         //BODY IS IRRELEVANT ON READ
         if (method == "read") return true;
 
+        //BODY IS IRRELEVANT ON DELETE
+        if (method == "delete") return true;
+
+
         //BODY NOT NULL RESTRAINT
         if (body == null)
         {
             RequestErrors.Add("missing body");
             return false;
         } 
-        else if (method is "create" or "update" or "delete" )
+        else if (method is "create" or "update" )
         {
             try
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -9,6 +10,14 @@ var server = new TcpListener(IPAddress.Parse("127.0.0.1"), 5000);
 server.Start();
 
 Console.WriteLine("Server is started...");
+
+//DATA MODEL
+List<Category> category = new List<Category>();
+category.Add(new Category(1, "Beverages"));
+category.Add(new Category(2, "Condiments"));
+category.Add(new Category(3, "Confections"));
+
+var DataModel = new DataModel(category);
 
 while (true)
 {
@@ -24,12 +33,6 @@ while (true)
         TcpClient client = (TcpClient)obj;
         Console.WriteLine("Connected to new client");
 
-        //DATA MODEL
-        List<Category> category = new List<Category>();
-        category.Add(new Category(1, "Beverages"));
-        category.Add(new Category(2, "Condiments"));
-        category.Add(new Category(3, "Confections"));
-
         var stream = client.GetStream();
         var buffer = new byte[1024];
         var response = new Response();
@@ -44,47 +47,47 @@ while (true)
             
             //REQUEST HANDLING
             response = requestFromJson.checkForBadRequest();
-            if (!response.Status.Contains('4')) //Making sure the request is valid
+            if (!response.Status.Contains('4')) //Making sure the request is not a bad request
             {
                 Console.WriteLine("Request approved");
                 var method = requestFromJson.Method;
 
-                // ECHO METHOD
+                // HANDLING ECHO METHOD
                 if (method == "echo")
                 {
                     response.Status = "1 Ok";
                     response.Body = requestFromJson.Body;
                 }
 
-                // READ METHOD
+                // HANDLING READ METHOD
                 if (method == "read")
                 {
                     var requestedCid = requestFromJson.getPathCid();
-                    if (requestedCid == 0) //0 means that no specific Cid is requested
-                    {
-                        response.Status = "1 Ok";
-                        var categoriesToJson = JsonSerializer.Serialize(category);
-                        response.Body = categoriesToJson;
-                    }
-                    else
-                    {
-                        var requestedCategory = category.Find(category1 => category1.Id == requestedCid);
-                        if (requestedCategory != null)
-                        {
-                            response.Status = "1 Ok";
-                            var categoryToJson = JsonSerializer.Serialize<Category>(requestedCategory);
-                            response.Body = categoryToJson;
-                        }
-                        else
-                        {
-                            response.Status = "5 Not Found";
-                        }
-
-                    }
-
+                    response = DataModel.read(requestedCid);
                 }
 
+                //HANDLING UPDATE METHOD
+                if (method == "update")
+                {
+                    var requestedCid = requestFromJson.getPathCid();
+                    var updatedCategoryFromJson = JsonSerializer.Deserialize<Category>(requestFromJson.Body);
+                    response = DataModel.update(requestedCid, updatedCategoryFromJson);
+                }
 
+                //HANDLING CREATE METHOD
+                if (method == "create")
+                {
+                    var createdCategoryFromJson = JsonSerializer.Deserialize<Category>(requestFromJson.Body);
+                    var createdCategoryName = createdCategoryFromJson.Name;
+                    response = DataModel.create(createdCategoryName);
+                }
+
+                //HANDLING DELETE METHOD
+                if (method == "delete")
+                {
+                    var requestedCid = requestFromJson.getPathCid();
+                    response = DataModel.delete(requestedCid);
+                }
 
             }
 
