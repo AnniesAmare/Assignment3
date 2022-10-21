@@ -44,7 +44,9 @@ while (true)
             var requestData = System.Text.Encoding.UTF8.GetString(buffer, 0, readCount);
             Console.WriteLine("Received request: {0}", requestData);
             var requestFromJson = JsonSerializer.Deserialize<Request>(requestData);
-            
+
+            Console.WriteLine(requestFromJson.Method);
+
             //REQUEST HANDLING
             response = requestFromJson.checkForBadRequest();
             if (!response.Status.Contains('4')) //Making sure the request is not a bad request
@@ -90,13 +92,13 @@ while (true)
                 }
 
             }
-
             //SEND JSON RESPONSE 
             var responseToJson = JsonSerializer.Serialize<Response>(response);
             Console.WriteLine("Created response: {0}", responseToJson);
 
             var responseBuffer = Encoding.UTF8.GetBytes(responseToJson);
             stream.Write(responseBuffer);
+
         }
         catch (Exception e)
         {

@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 
 public class Request
 {
+    /*
+    //Request recieved in lowercase (old test suite)
     [JsonPropertyName("method")]
     public string Method { get; set; }
 
@@ -14,6 +16,17 @@ public class Request
 
     [JsonPropertyName("body")]
     public string Body { get; set; }
+    */
+
+    //request recieved with uppercase (new test suite)
+    public string Method { get; set; }
+
+    public string Path { get; set; }
+
+    public string Date { get; set; }
+
+    public string Body { get; set; }
+
 
     private List<string> RequestErrors = new List<string>(10);
 

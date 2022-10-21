@@ -2,9 +2,9 @@
 
 public class Response
 {
-    [JsonPropertyName("status")]
+    //Ko
     public string Status { get; set; }
 
-    [JsonPropertyName("body")]
     public string Body { get; set; }
+
 }
