@@ -4,7 +4,6 @@ namespace Assignment3;
 public class DataModel
 {
     public List<Category> Categories { get; set; }
-
     public DataModel (List<Category> defaultList)
     {
         Categories = defaultList;
@@ -19,17 +18,17 @@ public class DataModel
         if (requestedCid == 0) //0 means that no specific Cid is requested
         {
             response.Status = "1 Ok";
-            var categoriesToJson = JsonSerializer.Serialize(Categories);
+            var categoriesToJson = Categories.ToJson();
             response.Body = categoriesToJson;
         }
         //CID SPECIFIED
         else
         {
-            var requestedCategory = Categories.Find(category1 => category1.Id == requestedCid);
+            var requestedCategory = Categories.Find(x => x.Id == requestedCid);
             if (requestedCategory != null)
             {
                 response.Status = "1 Ok";
-                var categoryToJson = JsonSerializer.Serialize<Category>(requestedCategory);
+                var categoryToJson = requestedCategory.ToJson();
                 response.Body = categoryToJson;
             }
             else
@@ -37,7 +36,6 @@ public class DataModel
                 response.Status = "5 Not Found";
             }
         }
-        
         return response;
     }
 
@@ -45,57 +43,50 @@ public class DataModel
     public Response delete(int requestedCid)
     {
         var response = new Response();
-        var deletedCategory = Categories.Find(category1 => category1.Id == requestedCid);
+        var deletedCategory = Categories.Find(x => x.Id == requestedCid);
         if (deletedCategory != null)
         {
-            //deleting the Category matching the requested Cid in Categories
-            var deletedCategoryIndex = Categories.FindIndex(category1 => category1.Id == requestedCid);
+            //deleting the Category matching the input cid
+            var deletedCategoryIndex = Categories.FindIndex(x => x.Id == requestedCid);
             Categories.RemoveAt(deletedCategoryIndex);
 
-            //returning status 
             response.Status = "1 Ok";
             //option for returning deleted Category as body. Used for testing.
-            //var categoryToJson = JsonSerializer.Serialize<Category>(deletedCategory);
+            //var categoryToJson = deletedCategory.ToJson();
             //response.Body = categoryToJson;
         }
         else
         {
             response.Status = "5 Not Found";
         }
-
         return response;
     }
-
-
 
     //UPDATE METHOD
     public Response update(int requestedCid, Category updatedCategory)
     {
         var response = new Response();
 
-        var requestedCategory = Categories.Find(category1 => category1.Id == requestedCid);
+        var requestedCategory = Categories.Find(x => x.Id == requestedCid);
         if (requestedCategory != null)
         {
-            //updating the Category matching the requested Cid in Categories
-            var requestedCategoryIndex = Categories.FindIndex(category1 => category1.Id == requestedCid);
+            //updating the Category matching the input cid
+            var requestedCategoryIndex = Categories.FindIndex(x => x.Id == requestedCid);
             Categories[requestedCategoryIndex] = updatedCategory;
 
             //returning the updated Category
             response.Status = "3 Updated";
-            var categoryToJson = JsonSerializer.Serialize<Category>(Categories[requestedCategoryIndex]);
+            var categoryToJson = Categories[requestedCategoryIndex].ToJson();
             response.Body = categoryToJson;
         }
         else
         {
             response.Status = "5 Not Found";
         }
-
-
         return response;
-
     }
 
-    private Boolean checkCid(int Cid)
+    private bool checkCid(int Cid)
     {
         foreach (var category in Categories)
         {
@@ -137,13 +128,11 @@ public class DataModel
 
             //returning the new Category from our Categories list
             response.Status = "2 Created";
-            var newCategoryIndex = Categories.FindIndex(category1 => category1.Id == newCid);
-            var categoryToJson = JsonSerializer.Serialize<Category>(Categories[newCategoryIndex]);
+            var newCategoryIndex = Categories.FindIndex(x => x.Name == newCategoryName);
+            var categoryToJson = Categories[newCategoryIndex].ToJson();
             response.Body = categoryToJson;
         }
-        
         return response;
-
     }
 
 }
