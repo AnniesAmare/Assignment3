@@ -3,8 +3,14 @@ using System.Text.Json.Serialization;
 
 public class Request
 {
+    //request received with uppercase (new test suite)
+    public string Method { get; set; }
+    public string Path { get; set; }
+    public string Date { get; set; }
+    public string Body { get; set; }
+    
     /*
-    //Request recieved in lowercase (old test suite)
+    //Request received in lowercase (old test suite)
     [JsonPropertyName("method")]
     public string Method { get; set; }
 
@@ -18,158 +24,141 @@ public class Request
     public string Body { get; set; }
     */
 
-    //request recieved with uppercase (new test suite)
-    public string Method { get; set; }
-
-    public string Path { get; set; }
-
-    public string Date { get; set; }
-
-    public string Body { get; set; }
-
-
+    //ERROR LIST
     private List<string> RequestErrors = new List<string>(10);
 
     //METHOD TO CHECK PATH IS VALID
-    private Boolean checkPath()
+    private void checkPath()
     {
-        //PATH IS IRRELEVANT ON ECHO
-        if (this.Method == "echo") return true;
+        //PATH IS IRRELEVANT ON ECHO METHOD
+        if (Method == "echo") return;
 
         //PATH NOT NULL RESTRAINT CHECK
-        if (this.Path == null)
+        if (Path == null)
         {
             RequestErrors.Add("missing resource");
-            return false;
+            return;
         }
         
         //SPECIFIC PATH CHECK
-        if (this.Path.Contains("testing")) return true; //always accept testing-paths
-        if (!this.Path.Contains("/api/categories"))
+        if (Path.Contains("testing")) return; //always accept testing-paths
+        if (!Path.Contains("/api/categories"))
         {
             RequestErrors.Add("4 Bad Request");
-            return false;
+            return;
         }
 
-        //PATH ID CHECK
-        var method = this.Method;
-        var pathSplit = this.Path.Split("/");
+        //PATH CONTAINING ID CHECK
+        var pathSplit = Path.Split("/");
         if (pathSplit.Length > 3) //if the path contains an id after categories
         {
-            var id_string = pathSplit[3];
-            if (!int.TryParse(id_string, out int id_number))
+            var cidInput = pathSplit[3];
+            if (!int.TryParse(cidInput, out int cid))
             {
                 RequestErrors.Add("4 Bad Request");
-                return false;
+                return;
             }
-            else if (method == "create") //specific id is not allowed on create-method
+            if (Method == "create") //specific id is not allowed on create-method
             {
                 RequestErrors.Add("4 Bad Request");
-                return false;
+                return;
             }
-        } else if (method is "update" or "delete") //specific id is required on update or delete
+        } else if (Method is "update" or "delete") //specific id is required on update or delete
         {
             RequestErrors.Add("4 Bad Request"); 
-            return false;
+            return;
         }
-
-        return true;
     }
 
     //METHOD TO CHECK DATE IS VALID
-    private Boolean checkDate()
+    private void checkDate()
     {
-        if (this.Date == null)
+        if (Date == null)
         {
             RequestErrors.Add("missing date");
-            return false;
+            return;
         }
-        else if (!Int64.TryParse(this.Date, out long date))
+        if (!Int64.TryParse(Date, out long date))
         {
             RequestErrors.Add("illegal date");
-            return false;
+            return;
         }
-        return true;
+        return;
     }
 
     //METHOD TO CHECK METHOD IS VALID
-    private Boolean checkMethod()
+    private void checkMethod()
     {
-        var method = this.Method;
-        if (method == null)
+        if (Method == null)
         {
             RequestErrors.Add("missing method");
-            return false;
+            return;
         }
-        else if (method is "create" or "read" or "update" or "delete" or "echo")
+        if (Method is "create" or "read" or "update" or "delete" or "echo")
         {
-            return true;
-        } 
-        else
-        {
-            RequestErrors.Add("illegal method");
-            return false;
+            return;
         }
-
+        RequestErrors.Add("illegal method");
+        return;
     }
 
-    private Boolean checkBody()
+    private void checkBody()
     {
-        var body = this.Body;
-        var method = this.Method;
-        
         //BODY IS IRRELEVANT ON READ
-        if (method == "read") return true;
+        if (Method == "read") return;
 
         //BODY IS IRRELEVANT ON DELETE
-        if (method == "delete") return true;
-
+        if (Method == "delete") return;
 
         //BODY NOT NULL RESTRAINT
-        if (body == null)
+        if (Body == null)
         {
             RequestErrors.Add("missing body");
-            return false;
-        } 
-        else if (method is "create" or "update" )
+            return;
+        }
+        //BODY NEEDS READABLE CATEGORY OBJECT ON CREATE & UPDATE
+        if (Method is "create" or "update" )
         {
             try
             {
-                var bodyFromJson = JsonSerializer.Deserialize<Category>(body);
+                JsonSerializer.Deserialize<Category>(Body);
             }
             catch (Exception e)
             {
-                Console.WriteLine("could not convert body to json: {0}",body);
+                //Console output to show invalid body input.
+                //Console.WriteLine("could not convert body to json: {0}",Body);
                 RequestErrors.Add("illegal body");
-                return false;
+                return;
             }
         }
-        return true;
-
+        return;
     }
 
     public Response checkForBadRequest()
     {
         Response outputResponse = new Response();
-        this.checkMethod();
-        this.checkDate();
-        this.checkBody();
-        this.checkPath();
+        checkMethod();
+        checkDate();
+        checkBody();
+        checkPath();
 
+        //DEFAULT STATUS OUTPUT
         outputResponse.Status = "";
 
+        //IF ERRORS HAVE OCCURRED ADD THEM TO STATUS
         if (RequestErrors.Count > 0)
         {
             outputResponse.Status = "4 Bad Request: ";
             bool isFirst = true;
             foreach (var error in RequestErrors)
             {
+                //OVERWRITES ALL OTHER ERRORS (FOR CASES WITHOUT ERROR SPECIFICATION)
                 if (error.Contains('4'))
                 {
-                    outputResponse.Status = "4 Bad Request"; //does this when there is no specific error-identification
+                    outputResponse.Status = "4 Bad Request";
                     break;
                 }
-
+                //APPENDS ALL ERRORS TO THE STATUS
                 if (isFirst)
                 {
                     outputResponse.Status += error;
@@ -182,23 +171,21 @@ public class Request
                 }
             }
         }
-
         return outputResponse;
     }
 
+    //METHOD TO FETCH CID FROM PATH
     public int getPathCid()
     {
-        var method = this.Method;
-        var pathSplit = this.Path.Split("/");
+        var pathSplit = Path.Split("/");
         if (pathSplit.Length > 3) //if the path contains an id after categories
         {
-            var id_string = pathSplit[3];
-            if (int.TryParse(id_string, out int id_number))
+            var cidInput = pathSplit[3];
+            if (int.TryParse(cidInput, out int cid))
             {
-                return id_number;
+                return cid;
             }
         }
-        return 0;
+        return 0; //if the path does not contain a cid.
     }
-
 }
