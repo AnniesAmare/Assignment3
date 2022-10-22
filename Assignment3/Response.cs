@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+﻿namespace Assignment3;
 
 public class Response
 {

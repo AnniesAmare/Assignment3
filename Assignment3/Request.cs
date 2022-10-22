@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
+namespace Assignment3;
 
 public class Request
 {
@@ -10,19 +10,19 @@ public class Request
     public string Body { get; set; }
     
     /*
-    //Request received in lowercase (old test suite)
-    [JsonPropertyName("method")]
-    public string Method { get; set; }
+//Request received in lowercase (old test suite)
+[JsonPropertyName("method")]
+public string Method { get; set; }
 
-    [JsonPropertyName("path")]
-    public string Path { get; set; }
+[JsonPropertyName("path")]
+public string Path { get; set; }
 
-    [JsonPropertyName("date")]
-    public string Date { get; set; }
+[JsonPropertyName("date")]
+public string Date { get; set; }
 
-    [JsonPropertyName("body")]
-    public string Body { get; set; }
-    */
+[JsonPropertyName("body")]
+public string Body { get; set; }
+*/
 
     //ERROR LIST
     private List<string> RequestErrors = new List<string>(10);

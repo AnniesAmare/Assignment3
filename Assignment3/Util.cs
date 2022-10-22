@@ -1,7 +1,7 @@
-﻿using System.IO;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+namespace Assignment3;
 
 public static class Util
 {
